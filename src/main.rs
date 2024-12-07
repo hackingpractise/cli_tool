@@ -6,8 +6,6 @@ use arguments::Cli;
 use clap::Parser;
 use link::FromTo;
 
-static mut NOW: u32 = 0_u32;
-
 const ABOUT: &str = "cli tools to create symbolic links from one directory to another";
 const VERSION: &str = "0.1.0";
 
@@ -34,29 +32,9 @@ pub fn main() -> anyhow::Result<()> {
         return Err(anyhow!("Can not overwrite the file {to:?}"));
     }
     if from.len() > 1 && !to.exists() {
-        unsafe {
-            NOW += 1;
-        }
-        eprintln!(
-            "[{:0>6} {} {}] Creating directory -> {:?}",
-            unsafe { NOW },
-            file!(),
-            line!(),
-            &to
-        );
         fs::create_dir(&to)?;
     }
     if from.iter().filter(|f| f.is_dir()).count() > 0 {
-        unsafe {
-            NOW += 1;
-        }
-        eprintln!(
-            "[{:0>6} {} {}] Creating directory -> {:?}",
-            unsafe { NOW },
-            file!(),
-            line!(),
-            &to
-        );
         fs::create_dir(&to)?;
     }
     if from.len() == 1 {
@@ -93,32 +71,9 @@ pub mod link {
             if !self.from.is_file() {
                 Ok(self.aux_dir_traveler(20)?)
             } else if !self.to.exists() {
-                unsafe {
-                    NOW += 1;
-                }
-                eprintln!(
-                    "[{:0>6} {} {}] Creating link {:?} -> {:?}",
-                    unsafe { NOW },
-                    file!(),
-                    line!(),
-                    &self.from,
-                    &self.to
-                );
-
                 Ok(unix_fs::symlink(&self.from, &self.to)?)
             } else if self.to.is_dir() {
                 let to = self.to.join(self.from.iter().last().unwrap());
-                unsafe {
-                    NOW += 1;
-                }
-                eprintln!(
-                    "[{:0>6} {} {}] Creating link {:?} -> {:?}",
-                    unsafe { NOW },
-                    file!(),
-                    line!(),
-                    &self.from,
-                    &to
-                );
                 Ok(unix_fs::symlink(&self.from, &to)?)
             } else {
                 Err(anyhow!("Unxpected error at {}", line!()))
@@ -142,16 +97,6 @@ pub mod link {
                         if new_to.exists() {
                             return Err(anyhow!("The to path is not empty: {new_to:?}"));
                         }
-                        unsafe {
-                            NOW += 1;
-                        }
-                        eprintln!(
-                            "[{:0>6} {} {}] Creating directory -> {:?}",
-                            unsafe { NOW },
-                            file!(),
-                            line!(),
-                            &new_to
-                        );
                         fs::create_dir(&new_to)?;
                         let new_self = Self {
                             from: path,
@@ -161,33 +106,11 @@ pub mod link {
                     } else {
                         let n = path.iter().last().unwrap();
                         let new_to = to.join(n);
-                        unsafe {
-                            NOW += 1;
-                        }
-                        eprintln!(
-                            "[{:0>6} {} {}] Creating link {:?} -> {:?}",
-                            unsafe { NOW },
-                            file!(),
-                            line!(),
-                            &path,
-                            &new_to
-                        );
                         unix_fs::symlink(&from, &new_to)?;
                     }
                 }
                 Ok(())
             } else {
-                unsafe {
-                    NOW += 1;
-                }
-                eprintln!(
-                    "[{:0>6} {} {}] Creating link {:?} -> {:?}",
-                    unsafe { NOW },
-                    file!(),
-                    line!(),
-                    &from,
-                    &to
-                );
                 Ok(unix_fs::symlink(&from, &to)?)
             }
         }
