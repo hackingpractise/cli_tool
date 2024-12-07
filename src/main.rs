@@ -6,9 +6,6 @@ use arguments::Cli;
 use clap::Parser;
 use link::FromTo;
 
-const ABOUT: &str = "cli tools to create symbolic links from one directory to another";
-const VERSION: &str = "0.1.0";
-
 pub fn main() -> anyhow::Result<()> {
     let error_handler = |e: anyhow::Error, c| {
         eprintln!("{e}");
@@ -49,7 +46,6 @@ pub fn main() -> anyhow::Result<()> {
 }
 
 pub mod link {
-    use crate::NOW;
     use anyhow::{anyhow, Result};
     use std::fs;
     use std::os::unix::fs as unix_fs;
