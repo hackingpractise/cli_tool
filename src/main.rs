@@ -17,26 +17,26 @@ pub fn main() -> anyhow::Result<()> {
     let from = args_input.source;
     let to = args_input.target;
 
-    from.iter().for_each(|f| {
-        if !f.exists() {
-            error_handler(anyhow!("File {f:?} does not exist"), 2);
-        }
+    from.iter().for_each(|f| match f.try_exists() {
+        Ok(b) if !b => error_handler(anyhow!("File {f:?} does not exist"), 2),
+        Err(e) => error_handler(e.into(), 23),
+        _ => (),
     });
     // Checks if the file exist and prevents it from being overwritten.
-    if to.exists() {
-        return Err(anyhow!("Can not overwrite the file {to:?}"));
-    }
+    // if to.exists() {
+    //     return Err(anyhow!("Can not overwrite the file {to:?}"));
+    // }
     if from.len() > 1 && !to.exists() {
         fs::create_dir(&to)?;
     }
-    if from.iter().filter(|f| f.is_dir()).count() > 0 {
-        fs::create_dir(&to)?;
-    }
-    if from.len() == 1 {
-        FromTo::new(&from[0], &to).create_link()?;
-    }
+    // if from.iter().filter(|f| f.is_dir()).count() > 0 {
+    //     fs::create_dir(&to)?;
+    // }
+    // if from.len() == 1 {
+    //     FromTo::new(&from[0], &to).create_link()?;
+    // }
     from.into_iter().for_each(|f| {
-        FromTo::new(&f, &to)
+        FromTo::new(f.clone(), to.clone())
             .create_link()
             .unwrap_or_else(error_handler_unwrap)
     });
