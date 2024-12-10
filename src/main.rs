@@ -12,10 +12,7 @@ pub fn main() -> anyhow::Result<()> {
         eprintln!("{e}");
         std::process::exit(c);
     };
-    let error_handler_unwrap = |e| {
-        eprintln!("{e}");
-        std::process::exit(255);
-    };
+    let error_handler_unwrap = |e| error_handler(e, 255);
     let args_input = Cli::parse();
     let from = args_input.source;
     let to = args_input.target;
