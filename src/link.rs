@@ -1,7 +1,14 @@
 use anyhow::anyhow;
 use std::fs;
 use std::os::unix::fs as unix_fs;
-use std::path::PathBuf;
+use std::path::{self, Path, PathBuf};
+
+fn create_slink<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> anyhow::Result<()> {
+    let from = path::absolute(from)?;
+    let to = to.as_ref();
+    unix_fs::symlink(&from, to)?;
+    Ok(())
+}
 
 #[derive(Clone, Debug)]
 pub struct FromTo {
@@ -24,27 +31,25 @@ impl FromTo {
         if !from.is_file() {
             Ok(self.dir_handler()?)
         } else if !to.try_exists()? {
-            Ok(unix_fs::symlink(from, to)?)
+            Ok(create_slink(from, to)?)
         } else if to.is_dir() {
             let to = to.join(from.iter().last().unwrap());
-            Ok(unix_fs::symlink(from, to)?)
+            Ok(create_slink(from, to)?)
         } else {
             Err(anyhow!("Unxpected error at {}", line!()))
         }
     }
     fn dir_handler(&self) -> anyhow::Result<()> {
-        println!("Hey do not ignore me");
         let from = self.from.as_path();
         let to = self.to.as_path();
         if !to.try_exists().expect("Error here") {
-            println!("Created a new dir.");
             fs::create_dir(to).expect("Error here");
         }
         for file in from.read_dir().expect("Error here") {
             let file = file.expect("Error here").path();
             let from = file.as_path();
             let to = to.join(from.iter().last().unwrap());
-            unix_fs::symlink(from, to).expect("Error here");
+            create_slink(from, to).expect("Error here");
         }
         Ok(())
     }
